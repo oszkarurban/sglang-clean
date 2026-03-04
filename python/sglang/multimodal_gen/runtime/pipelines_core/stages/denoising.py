@@ -156,9 +156,7 @@ class _DiffusionPiecewiseCudaGraphRunner:
 
         if isinstance(obj, dict):
             for key in sorted(obj.keys()):
-                self._collect_tensor_signatures(
-                    obj[key], f"{prefix}.{key}", signatures
-                )
+                self._collect_tensor_signatures(obj[key], f"{prefix}.{key}", signatures)
             return
 
         if isinstance(obj, (list, tuple)):
@@ -308,7 +306,9 @@ class _DiffusionPiecewiseCudaGraphRunner:
 
         static_hidden_states = hidden_states.clone()
         static_timestep = timestep.clone()
-        static_guidance = guidance.clone() if isinstance(guidance, torch.Tensor) else None
+        static_guidance = (
+            guidance.clone() if isinstance(guidance, torch.Tensor) else None
+        )
         static_kwargs = self._clone_structure_with_tensors(kwargs)
 
         _ = model(
@@ -671,7 +671,9 @@ class DenoisingStage(PipelineStage):
             return
 
         if self._piecewise_cuda_graph_runner is None:
-            self._piecewise_cuda_graph_runner = _DiffusionPiecewiseCudaGraphRunner(logger)
+            self._piecewise_cuda_graph_runner = _DiffusionPiecewiseCudaGraphRunner(
+                logger
+            )
 
         cfg_rank = get_classifier_free_guidance_rank()
         need_positive = not (server_args.enable_cfg_parallel and cfg_rank != 0)
@@ -683,7 +685,9 @@ class DenoisingStage(PipelineStage):
 
         candidate_indices = [0]
         if self.transformer_2 is not None and boundary_timestep is not None:
-            low_noise_indices = (timesteps_cpu < boundary_timestep).nonzero(as_tuple=False)
+            low_noise_indices = (timesteps_cpu < boundary_timestep).nonzero(
+                as_tuple=False
+            )
             if low_noise_indices.numel() > 0:
                 low_noise_first_idx = int(low_noise_indices[0].item())
                 if low_noise_first_idx not in candidate_indices:

@@ -29,8 +29,8 @@ from sglang.multimodal_gen.runtime.pipelines_core.stages import (
     ImageVAEEncodingStage,
     InputValidationStage,
     LatentPreparationStage,
-    PipelineStage,
     PcgPreparationStage,
+    PipelineStage,
     TextEncodingStage,
     TimestepPreparationStage,
 )

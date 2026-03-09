@@ -430,6 +430,10 @@ class HiSparseCoordinator:
         self.request_finished(req)
 
     def request_finished(self, req: Req):
+        # release resources only after the execution of a potential overlapped batch
+        if self.decode_producer_stream is not None:
+            device_module.current_stream().wait_stream(self.decode_producer_stream)
+
         # release memory
         buffer_indices = self.req_to_device_buffer[req.req_pool_idx]
         self.token_to_kv_pool_allocator.free_hisparse_indices(buffer_indices)
@@ -460,11 +464,6 @@ class HiSparseCoordinator:
         layer_id: int,
     ) -> torch.Tensor:
         """Swap selected top-k tokens into device memory and return their indices."""
-        num_reqs = req_pool_indices.size(0)
-        # Reuse pre-allocated buffer (CUDA-graph safe: stable address)
-        top_k_indices = self.top_k_device_locs_buffer[:num_reqs]
-        top_k_indices.fill_(-1)
-        block_size = 512
         # The CUDA kernel determines IdxType from req_pool_indices.dtype() and
         # casts both req_pool_indices and seq_lens to that type.  Ensure they
         # share the same dtype so the kernel does not reinterpret int64 memory
@@ -474,8 +473,17 @@ class HiSparseCoordinator:
                 f"seq_lens dtype {seq_lens.dtype} does not match req_pool_indices dtype {req_pool_indices.dtype}"
             )
         if top_k_result.dtype != torch.int32:
-            top_k_result = top_k_result.to(dtype=torch.int32)
+            raise ValueError(
+                f"top_k_result dtype {top_k_result.dtype} is not int32 as expected"
+            )
+
+        num_reqs = req_pool_indices.size(0)
+        # Reuse pre-allocated buffer (CUDA-graph safe: stable address)
+        top_k_indices = self.top_k_device_locs_buffer[:num_reqs]
+        top_k_indices.fill_(-1)
         self.residency_map.fill_(-1)
+        # adjustable for performance
+        block_size = 512
         load_cache_to_device_buffer_mla(
             top_k_tokens=top_k_result,
             device_buffer_tokens=self.req_device_buffer_tokens[layer_id],

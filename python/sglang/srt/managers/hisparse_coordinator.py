@@ -83,18 +83,18 @@ class HiSparseCoordinator:
         # initialize data structures for swap-in kernel
         layer_num = self.mem_pool_device.layer_num
         self.req_device_buffer_tokens = torch.full(
-            (max_num_reqs, layer_num, self.padded_buffer_size),
+            (layer_num, max_num_reqs, self.padded_buffer_size),
             -1,
             dtype=torch.int32,
             device=device,
         )
         self.req_device_buffer_token_locs = torch.full(
-            (max_num_reqs, layer_num, self.padded_buffer_size),
+            (layer_num, max_num_reqs, self.padded_buffer_size),
             -1,
             dtype=torch.int32,
             device=device,
         )
-        self.bitmap = torch.full(
+        self.residency_map = torch.full(
             (max_num_reqs, max_context_len),
             -1,
             dtype=torch.int16,
@@ -105,7 +105,7 @@ class HiSparseCoordinator:
         )
         self.lru_slots = (
             self._lru_init.view(1, 1, -1)
-            .repeat(max_num_reqs, layer_num, 1)
+            .repeat(layer_num, max_num_reqs, 1)
             .contiguous()
         )
 
@@ -182,10 +182,10 @@ class HiSparseCoordinator:
 
         # initialize the token locs for the device buffer
         self.req_device_buffer_tokens[
-            req.req_pool_idx, :, : self.device_buffer_size
+            :, req.req_pool_idx, : self.device_buffer_size
         ] = torch.arange(self.device_buffer_size, device=self.device)
         self.req_device_buffer_token_locs[
-            req.req_pool_idx, :, : self.padded_buffer_size
+            :, req.req_pool_idx, : self.padded_buffer_size
         ] = buffer_indices[: self.padded_buffer_size]
 
     def has_ongoing_staging(self) -> bool:
@@ -245,6 +245,10 @@ class HiSparseCoordinator:
             reserved_buffer_loc[short_reqs] = self.req_to_device_buffer[
                 req_pool_indices[short_reqs], seq_lens[short_reqs] - 1
             ]
+
+        self.req_device_buffer_token_locs[
+            :, req_pool_indices, self.device_buffer_size
+        ] = reserved_buffer_loc.to(torch.int32)
 
         # todo, clear the prior mapping as well
         self.mem_pool_device.full_to_hisparse_device_index_mapping[out_cache_loc] = (
@@ -442,11 +446,11 @@ class HiSparseCoordinator:
         if host_indices.numel() > 0:
             self.mem_pool_host.free(host_indices)
         # clear req info
-        self.req_device_buffer_tokens[req.req_pool_idx, :, :] = -1
-        self.req_device_buffer_token_locs[req.req_pool_idx, :, :] = -1
+        self.req_device_buffer_tokens[:, req.req_pool_idx, :] = -1
+        self.req_device_buffer_token_locs[:, req.req_pool_idx, :] = -1
         self.req_to_device_buffer[req.req_pool_idx, :] = 0
         self.req_to_host_pool[req.req_pool_idx, :] = -1
-        self.lru_slots[req.req_pool_idx].copy_(self._lru_init)
+        self.lru_slots[:, req.req_pool_idx, :].copy_(self._lru_init)
 
     def swap_in_selected_pages(
         self,
@@ -461,19 +465,29 @@ class HiSparseCoordinator:
         top_k_indices = self.top_k_device_locs_buffer[:num_reqs]
         top_k_indices.fill_(-1)
         block_size = 512
+        # The CUDA kernel determines IdxType from req_pool_indices.dtype() and
+        # casts both req_pool_indices and seq_lens to that type.  Ensure they
+        # share the same dtype so the kernel does not reinterpret int64 memory
+        # through an int32 pointer (which reads garbage for odd batch indices).
+        if seq_lens.dtype != req_pool_indices.dtype:
+            raise ValueError(
+                f"seq_lens dtype {seq_lens.dtype} does not match req_pool_indices dtype {req_pool_indices.dtype}"
+            )
+        if top_k_result.dtype != torch.int32:
+            top_k_result = top_k_result.to(dtype=torch.int32)
+        self.residency_map.fill_(-1)
         load_cache_to_device_buffer_mla(
             top_k_tokens=top_k_result,
-            device_buffer_tokens=self.req_device_buffer_tokens,
+            device_buffer_tokens=self.req_device_buffer_tokens[layer_id],
             host_cache_locs=self.req_to_host_pool,
-            device_buffer_locs=self.req_device_buffer_token_locs,
+            device_buffer_locs=self.req_device_buffer_token_locs[layer_id],
             host_cache=self.mem_pool_host.kv_buffer[layer_id],
             device_buffer=self.mem_pool_device.kv_buffer[layer_id],
             top_k_device_locs=top_k_indices,
-            diff_map=self.bitmap,
+            residency_map=self.residency_map,
             req_pool_indices=req_pool_indices,
             seq_lens=seq_lens,
-            lru_slots=self.lru_slots,
-            layer_id=layer_id,
+            lru_slots=self.lru_slots[layer_id],
             item_size_bytes=self.mem_pool_host.token_stride_size,
             num_top_k=self.top_k,
             hot_buffer_size=self.device_buffer_size,

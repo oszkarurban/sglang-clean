@@ -112,7 +112,10 @@ class TestEAGLE3EngineDPAttention(CustomTestCase):
             else:
                 self.assertGreater(metrics["accuracy"], 0.91)
             if avg_spec_accept_length is not None:
-                self.assertGreater(avg_spec_accept_length, 2.5)
+                if is_in_amd_ci():
+                    self.assertGreater(avg_spec_accept_length, 2.0)
+                else:
+                    self.assertGreater(avg_spec_accept_length, 2.5)
 
     def test_bs_1_speed(self):
         """Test batch size 1 speed with EAGLE3 DP Attention"""

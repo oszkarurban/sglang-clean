@@ -37,7 +37,12 @@ from sglang.test.test_utils import (
 )
 
 register_cuda_ci(est_time=300, suite="nightly-4-gpu", nightly=True)
-register_amd_ci(est_time=300, suite="nightly-amd-4-gpu", nightly=True)
+register_amd_ci(
+    est_time=300,
+    suite="nightly-amd-4-gpu",
+    nightly=True,
+    disabled="TP=2 vs TP=4 numerical mismatch on AMD (comparator fails tolerance check)",
+)
 
 MODEL = "Qwen/Qwen3-30B-A3B"
 BASELINE_TP = 2

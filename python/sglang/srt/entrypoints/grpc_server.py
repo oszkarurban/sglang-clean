@@ -18,8 +18,6 @@ from typing import AsyncIterator, Dict, Optional
 import grpc
 import msgspec
 import numpy as np
-
-import sglang
 import torch
 import zmq
 import zmq.asyncio
@@ -28,6 +26,10 @@ from google.protobuf.struct_pb2 import Struct
 from google.protobuf.timestamp_pb2 import Timestamp
 from grpc_health.v1 import health_pb2_grpc
 from grpc_reflection.v1alpha import reflection
+from smg_grpc_proto import sglang_scheduler_pb2, sglang_scheduler_pb2_grpc
+from smg_grpc_proto.generated import common_pb2
+
+import sglang
 from sglang.srt.configs.model_config import ModelConfig
 from sglang.srt.disaggregation.kv_events import (
     AllBlocksCleared,
@@ -37,7 +39,7 @@ from sglang.srt.disaggregation.kv_events import (
     KVEventsConfig,
     ZmqEventPublisher,
 )
-from sglang.srt.disaggregation.utils import DisaggregationMode, FAKE_BOOTSTRAP_HOST
+from sglang.srt.disaggregation.utils import FAKE_BOOTSTRAP_HOST, DisaggregationMode
 from sglang.srt.grpc.grpc_request_manager import GrpcRequestManager
 from sglang.srt.grpc.health_servicer import SGLangHealthServicer
 from sglang.srt.grpc.scheduler_launcher import launch_scheduler_process_only
@@ -53,8 +55,6 @@ from sglang.srt.sampling.sampling_params import SamplingParams as SGLSamplingPar
 from sglang.srt.server_args import ServerArgs
 from sglang.srt.utils import kill_process_tree
 from sglang.utils import get_exception_traceback
-from smg_grpc_proto import sglang_scheduler_pb2, sglang_scheduler_pb2_grpc
-from smg_grpc_proto.generated import common_pb2
 
 logger = logging.getLogger(__name__)
 HEALTH_CHECK_TIMEOUT = int(os.getenv("SGLANG_HEALTH_CHECK_TIMEOUT", 20))
@@ -205,16 +205,6 @@ class SGLangSchedulerServicer(sglang_scheduler_pb2_grpc.SglangSchedulerServicer)
                     )
             except Exception as e:
                 logger.warning("Failed to parse kv_events_config: %s", e)
-
-        # Store HF config for M-RoPE models (Qwen VL family).
-        self._hf_config = None
-        if model_config is not None:
-            hf_text_config = model_config.hf_text_config
-            rope_scaling = getattr(hf_text_config, "rope_parameters", None) or getattr(
-                hf_text_config, "rope_scaling", None
-            )
-            if rope_scaling and "mrope_section" in rope_scaling:
-                self._hf_config = model_config.hf_config
 
         # Start the request manager's event loop using auto_create_handle_loop
         self.request_manager.auto_create_handle_loop()

@@ -539,9 +539,9 @@ class DecodePreallocQueue:
                     bootstrap_addr, rooms
                 )
                 for req in need_query:
-                    rank = room_to_rank.get(str(req.bootstrap_room))
-                    if rank is not None:
-                        resolved.append((req, int(rank)))
+                    prefill_dp_rank = room_to_rank.get(str(req.bootstrap_room))
+                    if prefill_dp_rank is not None:
+                        resolved.append((req, int(prefill_dp_rank)))
                     else:
                         remaining.append(req)
 

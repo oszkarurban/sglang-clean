@@ -71,7 +71,7 @@ jobs:
   unit-test-coverage:
     name: Unit Test Code Coverage
     if: github.event_name != 'pull_request'
-    runs-on: 1-gpu-5090
+    runs-on: 1-gpu-runner
     timeout-minutes: 30
     steps:
       - name: Checkout code
@@ -86,7 +86,8 @@ jobs:
         timeout-minutes: 10
         run: |
           pytest test/registered/unit/ \
-            --cov --cov-config=.coveragerc --cov-report=term \
+            --cov --cov-config=.coveragerc \
+            --cov-report=term-missing:skip-covered \
             -v | tee coverage_output.txt
 
       - name: Write coverage to summary
@@ -97,16 +98,27 @@ jobs:
           echo "**Commit:** \`${GITHUB_SHA::8}\` | **Branch:** \`${GITHUB_REF_NAME}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Overall result and coverage
+          # Test result line (e.g., "== 42 passed, 1 failed in 23.5s ==")
           echo '```' >> $GITHUB_STEP_SUMMARY
-          grep -E '(^Name |^TOTAL |^----|passed|failed|error)' coverage_output.txt >> $GITHUB_STEP_SUMMARY
+          grep -E '^=+.*passed' coverage_output.txt >> $GITHUB_STEP_SUMMARY || true
+          echo "" >> $GITHUB_STEP_SUMMARY
+          # Coverage total
+          grep -E '^TOTAL ' coverage_output.txt >> $GITHUB_STEP_SUMMARY || true
           echo '```' >> $GITHUB_STEP_SUMMARY
 
-          # Low coverage files (< 50%) to guide contributors
-          LOW_COV=$(grep -E '^\S.*\s[0-4]?[0-9]%$' coverage_output.txt || true)
+          # Partially covered files (1-49%) — most actionable for contributors
+          LOW_COV=$(awk '/^python\/.*%/ {
+            for (i=1; i<=NF; i++) {
+              if ($i ~ /^[0-9]+%$/) {
+                pct = $i + 0
+                if (pct >= 1 && pct < 50) printf "%-80s %4s  %s\n", $1, $(i-2), $i
+                break
+              }
+            }
+          }' coverage_output.txt | head -30 || true)
           if [ -n "$LOW_COV" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "<details><summary>⚠️ Files with coverage below 50%</summary>" >> $GITHUB_STEP_SUMMARY
+            echo "<details><summary>Partially covered files (1-49%) — good candidates for more unit tests</summary>" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "$LOW_COV" >> $GITHUB_STEP_SUMMARY

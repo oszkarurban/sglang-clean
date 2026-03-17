@@ -68,6 +68,27 @@ jobs:
         run: |
           python scripts/ci/utils/ci_coverage_report.py --section by-suite
 
+  unit-test-coverage:
+    name: Unit Test Code Coverage
+    if: github.event_name != 'pull_request'
+    runs-on: 1-gpu-5090
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        timeout-minutes: 10
+        run: |
+          pip install -e "python/[test]"
+
+      - name: Run unit tests with coverage
+        timeout-minutes: 10
+        run: |
+          pytest test/registered/unit/ \
+            --cov --cov-config=.coveragerc --cov-report=term \
+            -v --timeout=60
+
   json-export:
     name: JSON Export
     runs-on: ubuntu-latest

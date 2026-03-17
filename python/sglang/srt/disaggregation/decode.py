@@ -352,11 +352,7 @@ class DecodePreallocQueue:
             req.retraction_mb_id = None
             self.retracted_queue.append(req)
         else:
-            prefill_dp_rank = self._resolve_prefill_dp_rank(req)
-            if prefill_dp_rank is None:
-                self.pending_reqs.append(req)
-                return
-            self._create_receiver_and_enqueue(req, prefill_dp_rank)
+            self.pending_reqs.append(req)
 
     def _resolve_prefill_dp_rank(self, req: Req) -> Optional[int]:
         if req.disagg_prefill_dp_rank is not None:
@@ -543,9 +539,9 @@ class DecodePreallocQueue:
                     bootstrap_addr, rooms
                 )
                 for req in need_query:
-                    room_key = str(req.bootstrap_room)
-                    if room_key in room_to_rank:
-                        resolved.append((req, int(room_to_rank[room_key])))
+                    rank = room_to_rank.get(str(req.bootstrap_room))
+                    if rank is not None:
+                        resolved.append((req, int(rank)))
                     else:
                         remaining.append(req)
 

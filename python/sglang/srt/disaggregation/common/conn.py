@@ -427,10 +427,10 @@ class CommonKVReceiver(BaseKVReceiver):
         self.kv_mgr = mgr
         self.kv_mgr.update_status(self.bootstrap_room, KVPoll.Bootstrapping)
 
-        if not self.kv_mgr.ensure_parallel_info(self.bootstrap_addr):
+        if self.bootstrap_addr not in self.kv_mgr.prefill_info_table:
             self.kv_mgr.record_failure(
                 self.bootstrap_room,
-                f"Could not fetch prefill parallel info from bootstrap_addr: {self.bootstrap_addr}",
+                f"Prefill server with bootstrap_addr: {self.bootstrap_addr} is healthy before, but now it is down. Request (bootstrap_addr: {self.bootstrap_addr}) has been marked as failed.",
             )
             self.kv_mgr.update_status(self.bootstrap_room, KVPoll.Failed)
             self.bootstrap_infos = None

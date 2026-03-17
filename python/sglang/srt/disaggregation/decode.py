@@ -352,14 +352,15 @@ class DecodePreallocQueue:
             req.retraction_mb_id = None
             self.retracted_queue.append(req)
         else:
+            # NOTE: fake transfer does not need to resolve prefill dp rank in the pending queue
+            if _is_fake_transfer(req, self.scheduler.server_args):
+                self._create_receiver_and_enqueue(req, 0)
+                return
             self.pending_reqs.append(req)
 
     def _resolve_prefill_dp_rank(self, req: Req) -> Optional[int]:
         if req.disagg_prefill_dp_rank is not None:
             return req.disagg_prefill_dp_rank
-
-        if _is_fake_transfer(req, self.scheduler.server_args):
-            return 0
 
         bootstrap_addr = f"{req.bootstrap_host}:{req.bootstrap_port}"
 

@@ -525,7 +525,6 @@ class DecodePreallocQueue:
 
             need_query = []
             for req in reqs:
-                # NOTE: we need resolve it again because we may ensure the parallel info here
                 prefill_dp_rank = self._resolve_prefill_dp_rank(req)
                 if prefill_dp_rank is not None:
                     resolved.append((req, prefill_dp_rank))

@@ -88,6 +88,7 @@ jobs:
           pytest test/registered/unit/ \
             --cov --cov-config=.coveragerc \
             --cov-report=term-missing:skip-covered \
+            --ignore=test/registered/unit/batch_invariant_ops \
             -v | tee coverage_output.txt
 
       - name: Write coverage to summary
@@ -106,19 +107,22 @@ jobs:
           grep -E '^TOTAL ' coverage_output.txt >> $GITHUB_STEP_SUMMARY || true
           echo '```' >> $GITHUB_STEP_SUMMARY
 
-          # Partially covered files (1-49%) — most actionable for contributors
+          # Partially covered core modules (1-49%) — most actionable for contributors
+          # Only show modules with testable logic; skip configs, models, layers, etc.
           LOW_COV=$(awk '/^python\/.*%/ {
             for (i=1; i<=NF; i++) {
               if ($i ~ /^[0-9]+%$/) {
                 pct = $i + 0
-                if (pct >= 1 && pct < 50) printf "%-80s %4s  %s\n", $1, $(i-2), $i
+                if (pct >= 1 && pct < 50) printf "%-80s %5s  %s\n", $1, $(i-2), $i
                 break
               }
             }
-          }' coverage_output.txt | head -30 || true)
+          }' coverage_output.txt \
+            | grep -E '/(mem_cache|managers|sampling|parser|observability|function_call|entrypoints|speculative|multimodal|utils)/' \
+            | head -40 || true)
           if [ -n "$LOW_COV" ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "<details><summary>Partially covered files (1-49%) — good candidates for more unit tests</summary>" >> $GITHUB_STEP_SUMMARY
+            echo "<details><summary>Core modules with coverage below 50% — good candidates for more unit tests</summary>" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             echo "$LOW_COV" >> $GITHUB_STEP_SUMMARY

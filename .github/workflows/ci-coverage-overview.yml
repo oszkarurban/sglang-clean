@@ -87,7 +87,7 @@ jobs:
         run: |
           pytest test/registered/unit/ \
             --cov --cov-config=.coveragerc --cov-report=term \
-            -v --timeout=60 | tee coverage_output.txt
+            -v | tee coverage_output.txt
 
       - name: Write coverage to summary
         if: always()

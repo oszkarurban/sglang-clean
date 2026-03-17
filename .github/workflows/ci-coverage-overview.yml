@@ -87,7 +87,16 @@ jobs:
         run: |
           pytest test/registered/unit/ \
             --cov --cov-config=.coveragerc --cov-report=term \
-            -v --timeout=60
+            -v --timeout=60 | tee coverage_output.txt
+
+      - name: Write coverage to summary
+        if: always()
+        run: |
+          echo "## Unit Test Code Coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          # pytest-cov's per-file coverage table and summary are in the last ~50 lines
+          tail -50 coverage_output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
   json-export:
     name: JSON Export

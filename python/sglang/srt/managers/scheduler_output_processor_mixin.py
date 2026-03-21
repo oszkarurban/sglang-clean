@@ -905,6 +905,17 @@ class SchedulerOutputProcessorMixin:
         spec_verify_ct = []
         spec_accepted_tokens = []
         spec_acceptance_histogram = []
+        spec_draft_tokens = []
+        spec_accepted_tokens_log = []
+        spec_rejected_tokens_log = []
+
+        spec_accept_index_log = []
+        spec_topk = []
+        spec_num_steps = []
+        spec_draft_token_num = []
+        spec_retrive_next_token = []
+        spec_retrive_next_sibling = []
+
         retraction_counts = []
         output_hidden_states = None
         load = self.get_load()
@@ -1023,6 +1034,16 @@ class SchedulerOutputProcessorMixin:
                     spec_verify_ct.append(req.spec_verify_ct)
                     spec_accepted_tokens.append(req.spec_accepted_tokens)
                     spec_acceptance_histogram.append(req.spec_acceptance_histogram)
+                    spec_draft_tokens.append(req.spec_draft_tokens)
+                    spec_accepted_tokens_log.append(req.spec_accepted_tokens_log)
+                    spec_rejected_tokens_log.append(req.spec_rejected_tokens_log)
+
+                    spec_accept_index_log.append(req.spec_accept_index_log)
+                    spec_topk.append(req.spec_topk)
+                    spec_num_steps.append(req.spec_num_steps)
+                    spec_draft_token_num.append(req.spec_draft_token_num)
+                    spec_retrive_next_token.append(req.spec_retrive_next_token)
+                    spec_retrive_next_sibling.append(req.spec_retrive_next_sibling)
 
                 if return_logprob:
                     if (
@@ -1127,6 +1148,15 @@ class SchedulerOutputProcessorMixin:
                     spec_verify_ct=spec_verify_ct,
                     spec_accepted_tokens=spec_accepted_tokens,
                     spec_acceptance_histogram=spec_acceptance_histogram,
+                    spec_draft_tokens=spec_draft_tokens,
+                    spec_accepted_tokens_log=spec_accepted_tokens_log,
+                    spec_rejected_tokens_log=spec_rejected_tokens_log,
+                    spec_accept_index_log=spec_accept_index_log,
+                    spec_topk=spec_topk,
+                    spec_num_steps=spec_num_steps,
+                    spec_draft_token_num=spec_draft_token_num,
+                    spec_retrive_next_token=spec_retrive_next_token,
+                    spec_retrive_next_sibling=spec_retrive_next_sibling,
                     time_stats=time_stats,
                     finished_reasons=finished_reasons,
                     decoded_texts=decoded_texts,

@@ -391,6 +391,7 @@ class EagleVerifyInput(SpecInput, EagleVerifyInputV2Mixin):
         unfinished_accept_index = []
         accept_index_cpu = accept_index.tolist()
         predict_cpu = predict.tolist()
+        candidates_cpu = candidates.tolist()
         has_finished = False
 
         # Iterate every accepted token and check if req has finished after append the token
@@ -431,6 +432,24 @@ class EagleVerifyInput(SpecInput, EagleVerifyInputV2Mixin):
             accepted_draft_tokens = sum(1 for idx in accept_index_row if idx != -1) - 1
             req.spec_accepted_tokens += accepted_draft_tokens
             req.update_spec_acceptance_histogram(accepted_draft_tokens)
+
+            draft_toks = candidates_cpu[i]
+            acc_indices = [idx for idx in accept_index_row if idx != -1]
+            acc_set = set(acc_indices)
+
+            req.spec_draft_tokens.append(draft_toks)
+            req.spec_accepted_tokens_log.append([draft_toks[idx] for idx in acc_indices])
+            req.spec_rejected_tokens_log.append([draft_toks[idx] for idx in range(len(draft_toks)) if idx not in acc_set])
+            req.spec_accept_index_log.append(acc_indices)
+
+            if not req.spec_tree_structure_logged:
+                req.spec_topk = self.topk
+                req.spec_num_steps = self.spec_steps
+                req.spec_draft_token_num = self.draft_token_num
+                req.spec_retrive_next_token = self.retrive_next_token.tolist()
+                req.spec_retrive_next_sibling = self.retrive_next_sibling.tolist()
+                req.spec_tree_structure_logged = True
+
 
         if has_finished:
             accept_length = (accept_index != -1).sum(dim=1) - 1

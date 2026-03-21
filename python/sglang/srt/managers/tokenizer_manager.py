@@ -1904,6 +1904,22 @@ class TokenizerManager(TokenizerCommunicatorMixin, TokenizerManagerMultiItemMixi
                 meta_info["spec_accept_histogram"] = recv_obj.spec_acceptance_histogram[
                     i
                 ]
+                
+            # Per-step token logging.
+            if (
+                hasattr(recv_obj, "spec_draft_tokens")
+                and recv_obj.spec_draft_tokens
+                and len(recv_obj.spec_draft_tokens) > i
+            ):
+                meta_info["spec_draft_tokens"] = recv_obj.spec_draft_tokens[i]
+                meta_info["spec_accepted_tokens_log"] = recv_obj.spec_accepted_tokens_log[i]
+                meta_info["spec_rejected_tokens_log"] = recv_obj.spec_rejected_tokens_log[i]
+                meta_info["spec_accept_index_log"] = recv_obj.spec_accept_index_log[i]
+                meta_info["spec_topk"] = recv_obj.spec_topk[i]
+                meta_info["spec_num_steps"] = recv_obj.spec_num_steps[i]
+                meta_info["spec_draft_token_num"] = recv_obj.spec_draft_token_num[i]
+                meta_info["spec_retrive_next_token"] = recv_obj.spec_retrive_next_token[i]
+                meta_info["spec_retrive_next_sibling"] = recv_obj.spec_retrive_next_sibling[i]
 
     def _request_has_grammar(self, obj: GenerateReqInput) -> bool:
         return (

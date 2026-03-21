@@ -132,6 +132,9 @@ def _handle_output_by_index(output, i):
             spec_acceptance_histogram=_extract_field_by_index(
                 output, "spec_acceptance_histogram", i
             ),
+            spec_draft_tokens=_extract_field_by_index(output, "spec_draft_tokens", i),
+            spec_accepted_tokens_log=_extract_field_by_index(output, "spec_accepted_tokens_log", i),
+            spec_rejected_tokens_log=_extract_field_by_index(output, "spec_rejected_tokens_log", i),
             time_stats=_extract_field_by_index(output, "time_stats", i),
             finished_reasons=_extract_field_by_index(output, "finished_reasons", i),
             decoded_texts=_extract_field_by_index(output, "decoded_texts", i),
@@ -219,6 +222,16 @@ def _handle_output_by_index(output, i):
             spec_acceptance_histogram=_extract_field_by_index(
                 output, "spec_acceptance_histogram", i
             ),
+            spec_draft_tokens=_extract_field_by_index(output, "spec_draft_tokens", i),
+            spec_accepted_tokens_log=_extract_field_by_index(output, "spec_accepted_tokens_log", i),
+            spec_rejected_tokens_log=_extract_field_by_index(output, "spec_rejected_tokens_log", i),
+            spec_accept_index_log=_extract_field_by_index(output, "spec_accept_index_log", i),
+            spec_topk=_extract_field_by_index(output, "spec_topk", i),
+            spec_num_steps=_extract_field_by_index(output, "spec_num_steps", i),
+            spec_draft_token_num=_extract_field_by_index(output, "spec_draft_token_num", i),
+            spec_retrive_next_token=_extract_field_by_index(output, "spec_retrive_next_token", i),
+            spec_retrive_next_sibling=_extract_field_by_index(output, "spec_retrive_next_sibling", i),
+
             time_stats=_extract_field_by_index(output, "time_stats", i),
             finished_reasons=_extract_field_by_index(output, "finished_reasons", i),
             output_strs=_extract_field_by_index(output, "output_strs", i),

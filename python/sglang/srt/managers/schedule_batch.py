@@ -799,18 +799,17 @@ class Req(ReqDllmMixin):
         # For diffusion LLM
         self.init_diffusion_llm(dllm_config)
 
-        #logging
+        # logging
         self.spec_draft_tokens: List[List[int]] = []
         self.spec_accepted_tokens_log: List[List[int]] = []
         self.spec_rejected_tokens_log: List[List[int]] = []
-
-        self.spec_topk: int = 0
-        self.spec_steps: int = 0
-        self.spec_draft_token_num: int = 0
-        self.spec_accept_index_log: List[List[int]] = []   # exact node indices per step
-        self.spec_retrive_next_token: List[List[int]] = []  # tree child pointers
-        self.spec_retrive_next_sibling: List[List[int]] = [] # tree sibling pointers
+        self.spec_accept_index_log: List[List[int]] = []
+        self.spec_retrive_next_token: List[List[int]] = []
+        self.spec_retrive_next_sibling: List[List[int]] = []
         self.spec_tree_structure_logged: bool = False
+        self.spec_logged_topk: int = 0
+        self.spec_logged_num_steps: int = 0
+        self.spec_logged_draft_token_num: int = 0
 
 
     @property

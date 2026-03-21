@@ -96,9 +96,9 @@ class SpeculativeDecodingMetricsMixin:
     spec_rejected_tokens_log: List[List[List[int]]]
 
     spec_accept_index_log: List[List[List[int]]]          # accepted node indices per step per req
-    spec_topk: List[int]                                   # topk per req (constant across steps)
-    spec_num_steps: List[int]                              # num_steps per req
-    spec_draft_token_num: List[int]                        # draft_token_num per req
+    spec_logged_topk: List[int]
+    spec_logged_num_steps: List[int]
+    spec_logged_draft_token_num: List[int]                        # draft_token_num per req
     spec_retrive_next_token: List[List[List[int]]]         # tree child pointers per req
     spec_retrive_next_sibling: List[List[List[int]]]
 

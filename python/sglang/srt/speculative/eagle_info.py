@@ -443,9 +443,9 @@ class EagleVerifyInput(SpecInput, EagleVerifyInputV2Mixin):
             req.spec_accept_index_log.append(acc_indices)
 
             if not req.spec_tree_structure_logged:
-                req.spec_topk = self.topk
-                req.spec_num_steps = self.spec_steps
-                req.spec_draft_token_num = self.draft_token_num
+                req.spec_logged_topk = self.topk
+                req.spec_logged_num_steps = self.spec_steps
+                req.spec_logged_draft_token_num = self.draft_token_num
                 req.spec_retrive_next_token = self.retrive_next_token.tolist()
                 req.spec_retrive_next_sibling = self.retrive_next_sibling.tolist()
                 req.spec_tree_structure_logged = True

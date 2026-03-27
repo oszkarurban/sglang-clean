@@ -442,13 +442,12 @@ class EagleVerifyInput(SpecInput, EagleVerifyInputV2Mixin):
             req.spec_rejected_tokens_log.append([draft_toks[idx] for idx in range(len(draft_toks)) if idx not in acc_set])
             req.spec_accept_index_log.append(acc_indices)
 
-            if not req.spec_tree_structure_logged:
-                req.spec_logged_topk = self.topk
-                req.spec_logged_num_steps = self.spec_steps
-                req.spec_logged_draft_token_num = self.draft_token_num
-                req.spec_retrive_next_token = self.retrive_next_token.tolist()
-                req.spec_retrive_next_sibling = self.retrive_next_sibling.tolist()
-                req.spec_tree_structure_logged = True
+            req.spec_logged_topk.append(self.topk)
+            req.spec_logged_num_steps.append(self.spec_steps)
+            req.spec_logged_draft_token_num.append(self.draft_token_num)
+            req.spec_logged_threshold_single.append(get_global_server_args().speculative_accept_threshold_single)
+            req.spec_retrive_next_token.append(self.retrive_next_token[i].tolist())
+            req.spec_retrive_next_sibling.append(self.retrive_next_sibling[i].tolist())
 
 
         if has_finished:

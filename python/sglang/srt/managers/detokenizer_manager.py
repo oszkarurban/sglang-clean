@@ -386,6 +386,7 @@ class DetokenizerManager(MultiHttpWorkerDetokenizerMixin):
             spec_logged_topk=recv_obj.spec_logged_topk,
             spec_logged_num_steps=recv_obj.spec_logged_num_steps,
             spec_logged_draft_token_num=recv_obj.spec_logged_draft_token_num,
+            spec_logged_threshold_single=recv_obj.spec_logged_threshold_single,
             spec_retrive_next_token=recv_obj.spec_retrive_next_token,
             spec_retrive_next_sibling=recv_obj.spec_retrive_next_sibling,
             input_token_logprobs_val=recv_obj.input_token_logprobs_val,

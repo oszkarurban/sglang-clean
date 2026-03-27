@@ -1918,6 +1918,7 @@ class TokenizerManager(TokenizerCommunicatorMixin, TokenizerManagerMultiItemMixi
                 meta_info["spec_topk"] = recv_obj.spec_logged_topk[i]
                 meta_info["spec_num_steps"] = recv_obj.spec_logged_num_steps[i]
                 meta_info["spec_draft_token_num"] = recv_obj.spec_logged_draft_token_num[i]
+                meta_info["spec_threshold_single"] = recv_obj.spec_logged_threshold_single[i]
                 meta_info["spec_retrive_next_token"] = recv_obj.spec_retrive_next_token[i]
                 meta_info["spec_retrive_next_sibling"] = recv_obj.spec_retrive_next_sibling[i]
 

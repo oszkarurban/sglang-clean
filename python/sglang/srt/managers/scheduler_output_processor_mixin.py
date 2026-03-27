@@ -913,6 +913,7 @@ class SchedulerOutputProcessorMixin:
         spec_logged_topk = []
         spec_logged_num_steps = []
         spec_logged_draft_token_num = []
+        spec_logged_threshold_single = []
         spec_retrive_next_token = []
         spec_retrive_next_sibling = []
 
@@ -1042,6 +1043,7 @@ class SchedulerOutputProcessorMixin:
                     spec_logged_topk.append(req.spec_logged_topk)
                     spec_logged_num_steps.append(req.spec_logged_num_steps)
                     spec_logged_draft_token_num.append(req.spec_logged_draft_token_num)
+                    spec_logged_threshold_single.append(req.spec_logged_threshold_single)
                     spec_retrive_next_token.append(req.spec_retrive_next_token)
                     spec_retrive_next_sibling.append(req.spec_retrive_next_sibling)
 
@@ -1155,6 +1157,7 @@ class SchedulerOutputProcessorMixin:
                     spec_logged_topk=spec_logged_topk,
                     spec_logged_num_steps=spec_logged_num_steps,
                     spec_logged_draft_token_num=spec_logged_draft_token_num,
+                    spec_logged_threshold_single=spec_logged_threshold_single,
                     spec_retrive_next_token=spec_retrive_next_token,
                     spec_retrive_next_sibling=spec_retrive_next_sibling,
                     time_stats=time_stats,
